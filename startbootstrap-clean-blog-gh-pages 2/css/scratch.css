@@ -1,0 +1,164 @@
+/* Navigation Bar Styling */
+#mainNav {
+    background-color: #ffb6c1; /* Light pink background for a happy vibe */
+    color: #fff; /* White text for contrast */
+    padding: 10px 20px; /* Adds padding for spacing */
+    position: fixed; /* Fixes the navbar at the top of the page */
+    top: 0; /* Aligns the navbar to the top */
+    left: 0; /* Aligns the navbar to the left */
+    width: 100%; /* Makes the navbar span the full width of the page */
+    z-index: 1000; /* Ensures the navbar stays on top of other elements */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Adds a subtle shadow for depth */
+    display: flex; /* Enables flexbox layout */
+    justify-content: space-between; /* Pushes content to the left and right */
+    align-items: center; /* Vertically centers the content */
+}
+
+/* Navbar Brand (Logo or Title) */
+#mainNav .navbar-brand {
+    color: #ff69b4; /* Vibrant orange for the brand */
+    font-size: 1.5em; /* Increases the font size */
+    font-weight: bold; /* Makes the brand stand out */
+    text-transform: uppercase; /* Capitalizes the text */
+    text-decoration: none; /* Removes underline */
+    padding: 10px 15px;
+}
+
+/* Hover Effect for Navbar Brand */
+#mainNav .navbar-brand:hover {
+    color: #ff69b4; /* Bright pink on hover */
+}
+
+/* Navbar Links */
+#mainNav .navbar-nav {
+    display: flex; /* Aligns the links horizontally */
+    gap: 15px; /* Adds spacing between the links */
+    margin: 0; /* Removes default margin */
+    padding: 0; /* Removes default padding */
+    list-style: none; /* Removes bullet points */
+}
+
+#mainNav .nav-link {
+    color: #ff69b4; /* Vibrant orange for the links */
+    font-weight: bold; /* Makes the links stand out */
+    text-transform: uppercase; /* Capitalizes the text */
+    padding: 10px 15px; /* Adds padding around the links */
+    transition: color 0.3s ease-in-out; /* Smooth transition for hover effect */
+    text-decoration: none; /* Removes underline from links */
+}
+
+/* Hover Effect for Navbar Links */
+#mainNav .nav-link:hover {
+    color: #ff69b4; /* Bright pink on hover */
+}
+
+
+/* Add Spacing Below Navbar to Prevent Overlap */
+body {
+    padding-top: 70px; /* Adjust this value based on the navbar height */
+}
+
+
+body {
+    font-family: sans-serif; /* Fun and playful font */
+    margin: 40px;
+    line-height: 1.6;
+    background: linear-gradient(to bottom, #fdf5e7, #fbe3e6); 
+    color: #333; /* Neutral text color for readability */
+}
+
+/* Center align headings for a clean look */
+h1, h3 {
+    text-align: center;
+    color: #ff69b4; /* Bright pink for a happy vibe */
+}
+
+/* Styling for h2 headings */
+h2 {
+    margin-top: 40px;
+    padding-bottom: 5px;
+    color: #ff4500; /* Vibrant orange for energy */
+    text-align: center;
+    text-transform: uppercase; /* Makes headings stand out */
+}
+
+/* Section styling for spacing */
+.section {
+    margin-bottom: 20px;
+    background: rgba(255, 182, 193, 0.3); /* Light pink background with transparency */
+    padding: 10px;
+    border-radius: 10px; /* Rounded corners for a softer look */
+}
+
+/* Job title styling */
+.job-title {
+    font-weight: bold;
+    color: #ff6347; /* Tomato red for emphasis */
+}
+
+/* Unordered list styling */
+ul {
+    margin-top: 10px;
+    padding-left: 20px;
+    list-style-type: circle; /* Circular bullets for a clean look */
+    color: #ff4500; /* Vibrant orange for list items */
+}
+
+/* Ordered list styling */
+ol {
+    margin-top: 10px;
+    padding-left: 20px;
+    list-style-type: decimal; /* Numbered bullets */
+    color: #ff4500; /* Matches unordered list color */
+}
+
+/* List item styling */
+li {
+    margin-bottom: 5px;
+    font-size: 1.1em; /* Slightly larger font for readability */
+}
+
+
+
+/* Center and style the image */
+img {
+    display: block;
+    margin: 10px auto;
+    border: 5px solid #ffb6c1; /* Light pink border */
+    border-radius: 15px; /* Rounded corners for a softer look */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Subtle shadow for depth */
+}
+
+/* Add a footer style for consistency */
+footer {
+    text-align: center;
+    margin-top: 40px;
+    padding: 10px;
+    background: #ffefd5; /* Light pastel yellow */
+    color: #ff4500; /* Vibrant orange */
+    font-size: 0.9em;
+    border-top: 2px solid #ff7f50; /* Coral-colored border */
+}
+
+.back-to-top {
+    display: block;
+    text-align: center;
+    margin: 20px auto;
+    padding: 10px 15px;
+    background-color: #f8c7ce; /* Light pink background */
+    color: #fff; /* White text */
+    text-decoration: none; /* Remove underline */
+    border-radius: 5px; /* Rounded corners */
+    width: 120px; /* Fixed width */
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+}
+
+/* Center the video */
+iframe {
+    display: block; /* Makes the iframe behave like a block element */
+    margin: 20px auto; /* Centers the iframe horizontally */
+    border: 5px solid #ffb6c1; /* Optional: Add a light pink border for aesthetics */
+    border-radius: 10px; /* Optional: Add rounded corners */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Optional: Add a subtle shadow for depth */
+}

@@ -1,0 +1,41 @@
+.back-to-top {
+    display: block;
+    text-align: center;
+    margin: 20px auto;
+    padding: 10px 15px;
+    background-color: #ffb6c1; /* Light pink background */
+    color: #fff; /* White text */
+    text-decoration: none; /* Remove underline */
+    border-radius: 5px; /* Rounded corners */
+    width: 120px; /* Fixed width */
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+}
+#mainNav .navbar-brand:hover {
+    color: #ff69b4; /* Bright pink on hover */
+
+}
+
+body {
+    
+    margin: 40px;
+    line-height: 1.6;
+  }
+  h1, h2 {
+    font-family: Arial, sans-serif;
+    text-align: center;
+  }
+  h2 {
+    margin-top: 40px;
+    border-bottom: 1px solid #000;
+    padding-bottom: 5px;
+  }
+  .section {
+    margin-bottom: 20px;
+  }
+  .job-title {
+    font-weight: bold;
+  }
+  ul {
+    margin-top: 5px;
+  }

@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flower Picker Game</title> 
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            display: flex;
+            flex-direction: column; /* Stack elements vertically */
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background-color: #e0f2e9; /* Light green background */
+            font-family: 'Press Start 2P', cursive; /* Arcade font */
+            color: #333;
+            margin: 0;
+            padding: 20px; /* Add padding around the content */
+            box-sizing: border-box;
+        }
+
+        h1 {
+            color: #2e7d32; /* Dark green title */
+            margin-bottom: 10px;
+            font-size: 1.5em; /* Adjust font size */
+            text-align: center;
+        }
+
+        #game-container {
+            border: 5px solid #6d4c41; /* Brown border */
+            position: relative; /* Needed for absolute positioning of messages */
+            background-color: #a5d6a7; /* Lighter green field */
+            border-radius: 10px; /* Rounded corners */
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            /* Fixed size for the canvas */
+            width: 400px;
+            height: 600px;
+            overflow: hidden; /* Hide anything outside the canvas */
+        }
+
+        canvas {
+            display: block; /* Remove extra space below canvas */
+            background-color: transparent; /* Canvas background handled by container */
+            width: 100%; /* Make canvas fill container */
+            height: 100%;
+        }
+
+        #controls, #info {
+            margin-top: 15px;
+            text-align: center;
+        }
+
+        button {
+            font-family: 'Press Start 2P', cursive; /* Arcade font */
+            background-color: #ffca28; /* Yellow button */
+            color: #3e2723; /* Brown text */
+            border: 2px solid #3e2723; /* Brown border */
+            padding: 10px 15px;
+            margin: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        button:hover {
+            background-color: #ffb300; /* Darker yellow on hover */
+        }
+         button:active {
+            transform: translateY(1px); /* Slight press effect */
+        }
+
+        #score, #message {
+            font-size: 0.9em; /* Adjust font size */
+            margin: 5px 0;
+        }
+
+        #message {
+            color: #d32f2f; /* Red for messages */
+            font-weight: bold;
+            min-height: 20px; /* Reserve space for message */
+        }
+
+         /* Style for game over/win overlay */
+        #game-over-message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 1.2em;
+            display: none; /* Hidden by default */
+            z-index: 10; /* Ensure it's on top */
+        }
+        #game-over-message button {
+             margin-top: 15px;
+        }
+
+        /* Style for instructions */
+        #instructions {
+            margin-top: 15px;
+            font-size: 0.8em;
+            color: #555;
+            max-width: 400px; /* Match canvas width */
+            text-align: left;
+            line-height: 1.4;
+        }
+        #instructions ul {
+            padding-left: 20px;
+        }
+
+    </style>
+</head>
+<body>
+    <div><a href="scratch.html">Back to Scratch </a></div>
+
+    <h1>Flower Picker</h1>
+    
+    <div id="game-container">
+        <canvas id="gameCanvas"></canvas>
+        <div id="game-over-message">
+            <span id="final-message">Game Over!</span><br>
+            <button id="restart-button-overlay">Play Again</button>
+        </div>
+    </div>
+
+    <div id="info">
+        <span id="score">Flowers: 0</span>
+        <div id="message">Select a level and press Start!</div>
+    </div>
+
+    <div id="controls">
+        <button id="easy-button">Easy</button>
+        <button id="medium-button">Medium</button>
+        <button id="hard-button">Hard</button>
+        <button id="start-button">Start</button>
+    </div>
+
+     <div id="instructions">
+        <strong>How to Play:</strong>
+        <ul>
+            <li>Use ⬅️ and ➡️ arrow keys to move sideways.</li>
+            <li>Use ⬆️ arrow key to move forward slightly faster.</li>
+            <li>Collect colorful flowers (🌸🌼🌷🌹🌻).</li>
+            <li>Avoid weeds/dead flowers (🪵🥀) and obstacles (🪣🪜).</li>
+            <li>Hitting weeds or obstacles resets your flower count!</li>
+            <li>Collect 50 flowers to win!</li>
+        </ul>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const gameContainer = document.getElementById('game-container');
+        const scoreDisplay = document.getElementById('score');
+        const messageDisplay = document.getElementById('message');
+        const easyButton = document.getElementById('easy-button');
+        const mediumButton = document.getElementById('medium-button');
+        const hardButton = document.getElementById('hard-button');
+        const startButton = document.getElementById('start-button');
+        const gameOverMessage = document.getElementById('game-over-message');
+        const finalMessage = document.getElementById('final-message');
+        const restartButtonOverlay = document.getElementById('restart-button-overlay');
+
+        let canvasWidth, canvasHeight;
+
+        // Game Settings
+        const settings = {
+            easy: { speed: 1, obstacleFrequency: 0, ladderFrequency: 0, targetScore: 50 },
+            medium: { speed: 2, obstacleFrequency: 0.008, ladderFrequency: 0, targetScore: 50 },
+            hard: { speed: 3, obstacleFrequency: 0.01, ladderFrequency: 0.005, targetScore: 50 }
+        };
+        let currentLevel = 'easy';
+        let scrollSpeed = settings[currentLevel].speed;
+        let targetScore = settings[currentLevel].targetScore;
+
+        // Player properties
+        const player = {
+            width: 30,
+            height: 45, // Slightly taller than wide
+            x: 0, // Will be set on resize/start
+            y: 0, // Will be set on resize/start
+            speed: 5,
+            color: '#d1a377', // Skin tone for base rectangle
+            hairColor: '#6d4c41', // Brown hair
+            dressColor: '#ff80ab', // Pink dress
+            basketColor: '#8d6e63', // Brown basket
+            dx: 0 // Horizontal movement speed
+        };
+
+        // Item properties
+        const itemRadius = 12; // Radius for flowers and weeds
+        const obstacleWidth = 30;
+        const obstacleHeight = 30;
+        const ladderWidth = 25;
+        const ladderHeight = 40;
+
+        // Game state
+        let score = 0;
+        let items = []; // Stores flowers, weeds, obstacles
+        let gameStarted = false;
+        let gameOver = false;
+        let animationFrameId;
+
+        // --- Item Definitions ---
+        const itemTypes = {
+            FLOWER: 'flower',
+            WEED: 'weed',
+            BUCKET: 'bucket',
+            LADDER: 'ladder'
+        };
+
+        const flowerColors = ['#ffff00', '#ff0000', '#448aff', '#ff4081', '#ff9800', '#9c27b0']; // Yellow, Red, Blue, Pink, Orange, Purple
+        const weedColor = '#795548'; // Dark brown
+        const deadFlowerColor = '#a1887f'; // Greyish brown
+        const bucketColor = '#bdbdbd'; // Silver
+        const waterColor = '#2196f3'; // Blue
+        const ladderColor = '#9e9e9e'; // Grey/Silver
+
+        // --- Utility Functions ---
+
+        function getRandomInt(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        function getRandomColor(colors) {
+            return colors[Math.floor(Math.random() * colors.length)];
+        }
+
+        // --- Drawing Functions ---
+
+        function drawPlayer() {
+            // Simple representation of a girl
+            // Body/Dress
+            ctx.fillStyle = player.dressColor;
+            ctx.fillRect(player.x, player.y + 15, player.width, player.height - 15);
+             // Head
+            ctx.fillStyle = player.color; // Skin tone
+            ctx.fillRect(player.x + 5, player.y, player.width - 10, 15); // Head base
+             // Hair
+            ctx.fillStyle = player.hairColor;
+            ctx.fillRect(player.x + 5, player.y, player.width - 10, 8); // Hair top
+            ctx.fillRect(player.x + 3, player.y + 5, 4, 10); // Hair side left
+            ctx.fillRect(player.x + player.width - 7, player.y + 5, 4, 10); // Hair side right
+
+            // Basket (simple representation)
+            ctx.fillStyle = player.basketColor;
+            ctx.fillRect(player.x - 5, player.y + player.height - 15, player.width + 10, 10); // Basket base
+            ctx.beginPath();
+            ctx.strokeStyle = player.basketColor;
+            ctx.lineWidth = 3;
+            ctx.arc(player.x + player.width / 2, player.y + player.height - 15, player.width / 1.5, Math.PI, 2 * Math.PI, false); // Handle
+            ctx.stroke();
+
+        }
+
+        function drawItem(item) {
+            ctx.beginPath();
+            switch (item.type) {
+                case itemTypes.FLOWER:
+                    ctx.fillStyle = item.color;
+                    ctx.arc(item.x, item.y, itemRadius, 0, Math.PI * 2);
+                    ctx.fill();
+                    // Add a small center dot
+                    ctx.fillStyle = 'rgba(0,0,0,0.3)';
+                    ctx.arc(item.x, item.y, itemRadius / 3, 0, Math.PI * 2);
+                    ctx.fill();
+                    break;
+                case itemTypes.WEED:
+                    ctx.fillStyle = item.color; // weedColor or deadFlowerColor
+                    // Draw a slightly irregular shape for weed/dead flower
+                    ctx.moveTo(item.x + itemRadius, item.y);
+                    ctx.arc(item.x, item.y, itemRadius, 0, Math.PI * 2);
+                    ctx.fill();
+                     // Add some spiky bits
+                    ctx.fillStyle = item.color;
+                    ctx.fillRect(item.x - itemRadius/2, item.y - itemRadius - 3, itemRadius, 3);
+                    ctx.fillRect(item.x - 3, item.y + itemRadius, 3, itemRadius/2);
+                    break;
+                case itemTypes.BUCKET:
+                    // Bucket body
+                    ctx.fillStyle = bucketColor;
+                    ctx.fillRect(item.x - obstacleWidth / 2, item.y - obstacleHeight / 2, obstacleWidth, obstacleHeight);
+                    // Water inside
+                    ctx.fillStyle = waterColor;
+                    ctx.fillRect(item.x - obstacleWidth / 2 + 3, item.y - obstacleHeight / 2 + 3, obstacleWidth - 6, obstacleHeight * 0.4);
+                     // Bucket rim
+                    ctx.fillStyle = '#9e9e9e'; // Darker grey rim
+                    ctx.fillRect(item.x - obstacleWidth / 2, item.y - obstacleHeight / 2, obstacleWidth, 5);
+                    break;
+                case itemTypes.LADDER:
+                    ctx.fillStyle = ladderColor;
+                    // Side rails
+                    ctx.fillRect(item.x - ladderWidth / 2, item.y - ladderHeight / 2, 5, ladderHeight);
+                    ctx.fillRect(item.x + ladderWidth / 2 - 5, item.y - ladderHeight / 2, 5, ladderHeight);
+                    // Rungs
+                    const numRungs = 4;
+                    for (let i = 0; i < numRungs; i++) {
+                        const rungY = item.y - ladderHeight / 2 + (ladderHeight / (numRungs + 1)) * (i + 1);
+                        ctx.fillRect(item.x - ladderWidth / 2 + 5, rungY, ladderWidth - 10, 4);
+                    }
+                    break;
+            }
+            ctx.closePath();
+        }
+
+        // --- Game Logic ---
+
+        function updatePlayerPosition() {
+            player.x += player.dx;
+
+            // Keep player within bounds
+            if (player.x < 0) {
+                player.x = 0;
+            }
+            if (player.x + player.width > canvasWidth) {
+                player.x = canvasWidth - player.width;
+            }
+        }
+
+        function moveItems(currentScrollSpeed) {
+            for (let i = items.length - 1; i >= 0; i--) {
+                items[i].y += currentScrollSpeed;
+                // Remove items that go off screen
+                if (items[i].y - Math.max(itemRadius, obstacleHeight / 2, ladderHeight / 2) > canvasHeight) {
+                    items.splice(i, 1);
+                }
+            }
+        }
+
+        function generateItems() {
+            const { obstacleFrequency, ladderFrequency } = settings[currentLevel];
+            const rand = Math.random();
+
+            // Determine item type based on level and randomness
+            let newItemType = itemTypes.FLOWER; // Default to flower
+            let itemColor = getRandomColor(flowerColors);
+
+            if (rand < obstacleFrequency + ladderFrequency + 0.02) { // Small chance for weed always
+                 if (rand < ladderFrequency && ladderFrequency > 0) {
+                    newItemType = itemTypes.LADDER;
+                } else if (rand < ladderFrequency + obstacleFrequency && obstacleFrequency > 0) {
+                    newItemType = itemTypes.BUCKET;
+                } else {
+                     newItemType = itemTypes.WEED;
+                     itemColor = Math.random() < 0.5 ? weedColor : deadFlowerColor; // Mix weeds and dead flowers
+                }
+            }
+
+            // Add new item at the top, random x position
+            if (Math.random() < 0.05) { // Control overall density of items
+                 const newItem = {
+                    x: getRandomInt(itemRadius, canvasWidth - itemRadius),
+                    y: -Math.max(itemRadius * 2, obstacleHeight, ladderHeight), // Start off screen
+                    type: newItemType,
+                    color: itemColor,
+                    radius: itemRadius, // For collision detection with flowers/weeds
+                    width: newItemType === itemTypes.BUCKET ? obstacleWidth : (newItemType === itemTypes.LADDER ? ladderWidth : 0),
+                    height: newItemType === itemTypes.BUCKET ? obstacleHeight : (newItemType === itemTypes.LADDER ? ladderHeight : 0)
+                };
+                items.push(newItem);
+            }
+        }
+
+        function checkCollisions() {
+            items.forEach((item, index) => {
+                let collision = false;
+                const playerCenterX = player.x + player.width / 2;
+                const playerCenterY = player.y + player.height / 2;
+
+                if (item.type === itemTypes.FLOWER || item.type === itemTypes.WEED) {
+                    // Circle collision (approximation for player rectangle)
+                    const distX = Math.abs(item.x - playerCenterX);
+                    const distY = Math.abs(item.y - playerCenterY);
+
+                    if (distX <= (player.width / 2 + item.radius) && distY <= (player.height / 2 + item.radius)) {
+                         // More precise check if needed, but this is often good enough
+                         collision = true;
+                    }
+                } else { // Obstacles (Bucket, Ladder) - Rectangle collision
+                     const itemLeft = item.x - item.width / 2;
+                     const itemRight = item.x + item.width / 2;
+                     const itemTop = item.y - item.height / 2;
+                     const itemBottom = item.y + item.height / 2;
+
+                     if (player.x < itemRight &&
+                         player.x + player.width > itemLeft &&
+                         player.y < itemBottom &&
+                         player.y + player.height > itemTop) {
+                         collision = true;
+                     }
+                }
+
+
+                if (collision) {
+                    if (item.type === itemTypes.FLOWER) {
+                        score++;
+                        scoreDisplay.textContent = `Flowers: ${score}`;
+                        items.splice(index, 1); // Remove collected flower
+                        if (score >= targetScore) {
+                            winGame();
+                        }
+                    } else if (item.type === itemTypes.WEED || item.type === itemTypes.BUCKET || item.type === itemTypes.LADDER) {
+                        // Hit a weed or obstacle - Reset score
+                        messageDisplay.textContent = `Ouch! Avoid ${item.type}s!`;
+                        score = 0; // Reset score as per requirement
+                        scoreDisplay.textContent = `Flowers: ${score}`;
+                        // Optional: Add a visual effect like screen shake or flash
+                        // Optional: Make player temporarily invincible?
+                         items.splice(index, 1); // Remove the obstacle/weed hit
+                        // gameOver = true; // Original idea was game over, but prompt said reset flowers
+                    }
+                }
+            });
+        }
+
+        function clearCanvas() {
+            ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+        }
+
+        function updateGame() {
+            if (gameOver || !gameStarted) return;
+
+            let effectiveScrollSpeed = scrollSpeed;
+            // Check if up arrow is pressed to increase scroll speed temporarily
+            if (keys['ArrowUp']) {
+                 effectiveScrollSpeed *= 1.5; // Move forward faster
+                 // Optionally move player up slightly too, but keep near bottom
+                 player.y -= 1;
+                 if (player.y < canvasHeight * 0.7) { // Don't let player go too high
+                     player.y = canvasHeight * 0.7;
+                 }
+            } else {
+                 // Gently move player back down if not pressing up
+                 if(player.y < canvasHeight - player.height - 20) {
+                     player.y += 0.5;
+                 }
+            }
+
+
+            clearCanvas();
+            updatePlayerPosition();
+            moveItems(effectiveScrollSpeed); // Use potentially modified speed
+            generateItems();
+            checkCollisions();
+
+            // Draw everything
+            items.forEach(drawItem);
+            drawPlayer();
+
+
+            animationFrameId = requestAnimationFrame(updateGame);
+        }
+
+        function winGame() {
+             gameOver = true;
+             gameStarted = false;
+             finalMessage.textContent = `You Win! Flowers: ${score}`;
+             gameOverMessage.style.display = 'block';
+             messageDisplay.textContent = 'Congratulations!';
+             cancelAnimationFrame(animationFrameId);
+        }
+
+        function loseGame() { // Currently not used as hitting obstacles resets score
+             gameOver = true;
+             gameStarted = false;
+             finalMessage.textContent = 'Game Over!';
+             gameOverMessage.style.display = 'block';
+             messageDisplay.textContent = 'Try again!';
+             cancelAnimationFrame(animationFrameId);
+        }
+
+
+        function resetGame() {
+            score = 0;
+            items = [];
+            gameOver = false;
+            player.x = (canvasWidth - player.width) / 2;
+            player.y = canvasHeight - player.height - 20; // Start near bottom
+            player.dx = 0;
+            scoreDisplay.textContent = `Flowers: ${score}`;
+            messageDisplay.textContent = 'Select a level and press Start!';
+            gameOverMessage.style.display = 'none'; // Hide overlay
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+            }
+        }
+
+        function startGame() {
+            if (gameStarted) return; // Prevent multiple starts
+            resetGame(); // Ensure clean state
+            gameStarted = true;
+            gameOver = false;
+            messageDisplay.textContent = 'Collect the flowers!';
+            scrollSpeed = settings[currentLevel].speed; // Set speed for the chosen level
+            targetScore = settings[currentLevel].targetScore;
+            updateGame();
+        }
+
+        // --- Event Listeners ---
+        const keys = {}; // Keep track of pressed keys
+
+        window.addEventListener('keydown', (e) => {
+            keys[e.key] = true; // Mark key as pressed
+            if (!gameStarted || gameOver) return;
+
+            if (e.key === 'ArrowLeft') {
+                player.dx = -player.speed;
+            } else if (e.key === 'ArrowRight') {
+                player.dx = player.speed;
+            }
+            // Up arrow handled in updateGame loop
+        });
+
+        window.addEventListener('keyup', (e) => {
+             keys[e.key] = false; // Mark key as released
+             if (!gameStarted || gameOver) return;
+
+            // Stop horizontal movement only if the released key is the one causing it
+            if (e.key === 'ArrowLeft' && player.dx < 0) {
+                player.dx = 0;
+            } else if (e.key === 'ArrowRight' && player.dx > 0) {
+                player.dx = 0;
+            }
+        });
+
+        easyButton.addEventListener('click', () => {
+            currentLevel = 'easy';
+            messageDisplay.textContent = 'Easy level selected. Press Start!';
+            resetGame(); // Reset if changing level after start
+        });
+        mediumButton.addEventListener('click', () => {
+            currentLevel = 'medium';
+            messageDisplay.textContent = 'Medium level selected. Press Start!';
+             resetGame();
+        });
+        hardButton.addEventListener('click', () => {
+            currentLevel = 'hard';
+            messageDisplay.textContent = 'Hard level selected. Press Start!';
+             resetGame();
+        });
+
+        startButton.addEventListener('click', startGame);
+        restartButtonOverlay.addEventListener('click', startGame); // Restart from overlay
+
+
+         // --- Resize Handling ---
+         function resizeCanvas() {
+            // Use the fixed size from the container
+            canvasWidth = gameContainer.clientWidth;
+            canvasHeight = gameContainer.clientHeight;
+            canvas.width = canvasWidth;
+            canvas.height = canvasHeight;
+
+            // Reset player position on resize
+            player.x = (canvasWidth - player.width) / 2;
+            player.y = canvasHeight - player.height - 20; // Keep near bottom
+
+            // Redraw static elements if needed (though loop handles it)
+             if (!gameStarted) {
+                clearCanvas();
+                drawPlayer(); // Draw initial player position
+            }
+         }
+
+        // Initial setup on load
+        window.addEventListener('load', () => {
+            resizeCanvas(); // Set initial size
+             resetGame(); // Set initial player position etc.
+        });
+        // Adjust canvas if window is resized
+        window.addEventListener('resize', resizeCanvas);
+
+
+    </script>
+
+</body>
+</html>
